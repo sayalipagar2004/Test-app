@@ -64,19 +64,19 @@ h1, p {
     overflow-x: auto;
     white-space: nowrap;
 }
-/* Streamlit button customization */
+/* Streamlit button customization (NOW WHITE BACKGROUND, BLACK TEXT) */
 div[data-testid="stColumn"] button {
-    background-color: #2a2a2a;
-    color: #fff;
-    border: 1px solid #444;
+    background-color: #ffffff; /* White background */
+    color: #000000; /* Black text */
+    border: 1px solid #888;
     border-radius: 8px;
     transition: background-color 0.2s, box-shadow 0.2s;
 }
 div[data-testid="stColumn"] button:hover {
-    background-color: #3d3d3d;
-    box-shadow: 0px 0px 5px rgba(0,255,255,0.2);
+    background-color: #eee; /* Light gray on hover */
+    box-shadow: 0px 0px 5px rgba(0,0,0,0.1);
 }
-/* Specific style for operators and functions (Casio orange/red) */
+/* Specific style for operators and functions (Keeping distinct Casio colors) */
 div[data-testid="stColumn"]:nth-child(4) button, 
 div[data-testid="stColumn"]:nth-child(5) button,
 div[data-testid="stColumn"]:nth-child(1) button:nth-child(1) { /* First column, first button (AC) */
