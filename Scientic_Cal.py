@@ -7,27 +7,25 @@ st.set_page_config(page_title="Scientific Calculator", page_icon="🧮", layout=
 # ---------- CUSTOM STYLE ----------
 st.markdown("""
 <style>
-body {
-    background-color: #0f0f0f;
-}
 div[data-testid="stAppViewContainer"] {
     background-color: #0f0f0f;
 }
-h1, h2, h3, p {
+h1, p {
     color: #fff;
+    text-align: center;
 }
 .calculator {
     background-color: #1a1a1a;
     border-radius: 20px;
     padding: 25px;
-    width: 340px;
+    width: 350px;
     margin: auto;
     box-shadow: 0px 0px 20px rgba(0,255,255,0.4);
 }
 .display {
     background-color: #000;
     color: #00ffcc;
-    font-size: 28px;
+    font-size: 26px;
     text-align: right;
     border-radius: 10px;
     padding: 10px 15px;
@@ -46,10 +44,8 @@ h1, h2, h3, p {
     margin-bottom: 15px;
     height: 40px;
 }
-.button-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    grid-gap: 10px;
+button {
+    font-weight: bold !important;
 }
 footer, .stDeployButton {visibility: hidden;}
 </style>
@@ -73,17 +69,16 @@ def safe_eval(expr):
     except Exception:
         return "Error"
 
-# ---------- BUTTON FUNCTION ----------
+# ---------- BUTTON LOGIC ----------
 def press(key):
     if key == "=":
-        res = safe_eval(st.session_state.expr)
-        st.session_state.result = str(res)
+        st.session_state.result = str(safe_eval(st.session_state.expr))
     elif key == "C":
         st.session_state.expr = ""
         st.session_state.result = ""
     elif key in ["sin", "cos", "tan", "sqrt", "log", "abs", "round"]:
         st.session_state.expr += f"math.{key}("
-    elif key == "pi":
+    elif key == "π":
         st.session_state.expr += str(math.pi)
     elif key == "e":
         st.session_state.expr += str(math.e)
@@ -93,26 +88,29 @@ def press(key):
 # ---------- UI ----------
 st.markdown('<div class="calculator">', unsafe_allow_html=True)
 
-# Expression and result displays (two separate areas)
+# Expression and result display
 st.markdown(f'<div class="display">{st.session_state.expr}</div>', unsafe_allow_html=True)
 st.markdown(f'<div class="result-display">{st.session_state.result}</div>', unsafe_allow_html=True)
 
+# Button Layout
 buttons = [
-    ["7", "8", "9", "/", "sin"],
-    ["4", "5", "6", "*", "cos"],
-    ["1", "2", "3", "-", "tan"],
+    ["7", "8", "9", "÷", "sin"],
+    ["4", "5", "6", "×", "cos"],
+    ["1", "2", "3", "−", "tan"],
     ["0", ".", "(", ")", "+"],
-    ["sqrt", "log", "pi", "e", "="],
-    ["C", "^", "%", "abs", "round"],
+    ["√", "log", "π", "e", "="],
+    ["C", "^", "%", "abs", "round"]
 ]
 
-# Render grid buttons
+# Render Buttons
 for row in buttons:
     cols = st.columns(len(row))
-    for i, key in enumerate(row):
+    for i, label in enumerate(row):
         with cols[i]:
-            if st.button(key, key=f"{row}-{key}", use_container_width=True):
-                press(key)
+            if st.button(label, use_container_width=True):
+                # Convert display symbols to Python operators
+                mapping = {"÷": "/", "×": "*", "−": "-", "√": "sqrt", "π": "pi"}
+                press(mapping.get(label, label))
 
 st.markdown('</div>', unsafe_allow_html=True)
 st.markdown("<br><center><p style='color:#888;'>Casio fx-991EX inspired calculator built with ❤️ using Streamlit</p></center>", unsafe_allow_html=True)
