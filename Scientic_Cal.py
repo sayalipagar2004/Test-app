@@ -1,80 +1,118 @@
 import streamlit as st
 import math
 
-# Initialize session state for the expression and result
-if 'expression' not in st.session_state:
-    st.session_state.expression = ""
-if 'result' not in st.session_state:
+# ---------- PAGE CONFIG ----------
+st.set_page_config(page_title="Scientific Calculator", page_icon="🧮", layout="centered")
+
+# ---------- INITIAL STATE ----------
+if "expr" not in st.session_state:
+    st.session_state.expr = ""
+if "result" not in st.session_state:
     st.session_state.result = ""
 
-st.title("🔢 Scientific Calculator (Streamlit/Python)")
-st.caption("Inspired by Casio fx-991")
+# ---------- STYLE (loaded once) ----------
+if "css_loaded" not in st.session_state:
+    st.markdown("""
+    <style>
+    div[data-testid="stAppViewContainer"] {
+        background-color: #0f0f0f;
+    }
+    h1, p {
+        color: #fff;
+        text-align: center;
+    }
+    .calculator {
+        background-color: #1a1a1a;
+        border-radius: 15px;
+        padding: 20px;
+        width: 340px;
+        margin: auto;
+        box-shadow: 0px 0px 15px rgba(0,255,255,0.4);
+    }
+    .display {
+        background-color: #000;
+        color: #00ffcc;
+        font-size: 24px;
+        text-align: right;
+        border-radius: 10px;
+        padding: 10px 15px;
+        border: 2px solid #00ffcc;
+        height: 45px;
+        overflow-x: auto;
+    }
+    .result-display {
+        background-color: #111;
+        color: #00ffcc;
+        font-size: 20px;
+        text-align: right;
+        border-radius: 10px;
+        padding: 6px 15px;
+        border: 1px solid #00ffcc;
+        margin-bottom: 12px;
+        height: 35px;
+    }
+    button {
+        font-weight: bold !important;
+    }
+    footer, .stDeployButton {visibility: hidden;}
+    </style>
+    """, unsafe_allow_html=True)
+    st.session_state.css_loaded = True
 
-# --- Display (Casio-like Screen) ---
-# Display the current expression being typed
-st.text_input(
-    "Expression", 
-    value=st.session_state.expression, 
-    key="exp_input", 
-    disabled=True,
-    label_visibility="collapsed"
-)
-# Display the final result
-st.markdown(f"## **Result:** {st.session_state.result}")
+st.title("🧮 Casio-Style Scientific Calculator")
 
-# --- Calculation Logic ---
-def calculate_expression():
-    """Evaluates the mathematical expression entered."""
+# ---------- SAFE EVALUATION ----------
+def safe_eval(expr):
     try:
-        # NOTE: Using eval() is a security risk for production apps.
-        # For a basic scientific calculator prototype, you can use it 
-        # but a production-ready version needs safer parsing (e.g., sympy or custom parser).
-        
-        # Replace common function names with their math equivalent
-        exp_to_eval = st.session_state.expression.replace('^', '**').replace('log(', 'math.log10(').replace('ln(', 'math.log(').replace('sin(', 'math.sin(math.radians(') # Simple example
-        
-        final_result = str(eval(exp_to_eval, {"__builtins__": {}}, {"math": math}))
-        st.session_state.result = final_result
-        st.session_state.expression = final_result # Start new calculation with result
-    except Exception as e:
-        st.session_state.result = "Error"
-        st.session_state.expression = ""
+        expr = expr.replace("^", "**")
+        allowed = {k: getattr(math, k) for k in dir(math) if not k.startswith("__")}
+        allowed.update({"abs": abs, "round": round})
+        return eval(expr, {"__builtins__": None}, allowed)
+    except Exception:
+        return "Error"
 
-def append_to_expression(symbol):
-    """Appends a symbol to the current expression."""
-    if st.session_state.result in ["Error", ""]:
-        st.session_state.result = "" # Clear previous error/result
-    st.session_state.expression += str(symbol)
+# ---------- BUTTON LOGIC ----------
+def press(key):
+    if key == "=":
+        st.session_state.result = str(safe_eval(st.session_state.expr))
+    elif key == "C":  # backspace
+        st.session_state.expr = st.session_state.expr[:-1]
+    elif key == "AC":
+        st.session_state.expr = ""
+        st.session_state.result = ""
+    elif key in ["sin", "cos", "tan", "sqrt", "log", "abs", "round"]:
+        st.session_state.expr += f"math.{key}("
+    elif key == "π":
+        st.session_state.expr += str(math.pi)
+    elif key == "e":
+        st.session_state.expr += str(math.e)
+    else:
+        st.session_state.expr += key
 
-def clear_all():
-    """Clears the entire calculation."""
-    st.session_state.expression = ""
-    st.session_state.result = ""
+# ---------- DISPLAY ----------
+st.markdown('<div class="calculator">', unsafe_allow_html=True)
+st.markdown(f'<div class="display">{st.session_state.expr}</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="result-display">{st.session_state.result}</div>', unsafe_allow_html=True)
 
-# --- Button Layout (Simplified Grid) ---
-st.markdown("---")
+# ---------- BUTTON GRID ----------
+buttons = [
+    ["7", "8", "9", "÷", "sin"],
+    ["4", "5", "6", "×", "cos"],
+    ["1", "2", "3", "−", "tan"],
+    ["0", ".", "(", ")", "+"],
+    ["√", "log", "π", "e", "="],
+    ["C", "AC", "^", "%", "round"]
+]
 
-cols = st.columns(5) # 5 columns for a calculator grid
+mapping = {"÷": "/", "×": "*", "−": "-", "√": "sqrt", "π": "pi"}
 
-# Row 1: Clear, Sin, Cos, Tan, Pi
-cols[0].button("AC", on_click=clear_all, use_container_width=True)
-cols[1].button("sin", on_click=append_to_expression, args=("sin(",), use_container_width=True)
-cols[2].button("cos", on_click=append_to_expression, args=("cos(",), use_container_width=True)
-cols[3].button("tan", on_click=append_to_expression, args=("tan(",), use_container_width=True)
-cols[4].button("π", on_click=append_to_expression, args=(f"math.pi",), use_container_width=True)
-
-# Row 2: 7, 8, 9, /, Log
 cols = st.columns(5)
-cols[0].button("7", on_click=append_to_expression, args=("7",), use_container_width=True)
-cols[1].button("8", on_click=append_to_expression, args=("8",), use_container_width=True)
-cols[2].button("9", on_click=append_to_expression, args=("9",), use_container_width=True)
-cols[3].button("/", on_click=append_to_expression, args=("/",), use_container_width=True)
-cols[4].button("log", on_click=append_to_expression, args=("log(",), use_container_width=True)
+for row in buttons:
+    for i, label in enumerate(row):
+        with cols[i % 5]:
+            if st.button(label, use_container_width=True):
+                press(mapping.get(label, label))
+    cols = st.columns(5)
 
-# ... continue with more rows for other numbers and operators ...
-
-# Final Row: 0, ., =
-cols = st.columns(5)
-cols[0].button("0", on_click=append_to_expression, args=("0",), use_container_width=True)
-cols[1].button(".", on_click=append_to_expression, args=(".",), use_container_width=True)
-cols[2].button("=", on_click=calculate_expression, use_container_width=True)
+st.markdown('</div>', unsafe_allow_html=True)
+st.markdown("<br><center><p style='color:#888;'>Casio fx-991EX inspired calculator built with ❤️ using Streamlit</p></center>", unsafe_allow_html=True)
