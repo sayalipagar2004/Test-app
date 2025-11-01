@@ -92,7 +92,7 @@ st.markdown('<div class="calculator">', unsafe_allow_html=True)
 st.markdown(f'<div class="display">{st.session_state.expr}</div>', unsafe_allow_html=True)
 st.markdown(f'<div class="result-display">{st.session_state.result}</div>', unsafe_allow_html=True)
 
-# Button Layout
+# Button Layout 
 buttons = [
     ["7", "8", "9", "÷", "sin"],
     ["4", "5", "6", "×", "cos"],
