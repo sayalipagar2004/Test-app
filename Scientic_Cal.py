@@ -4,60 +4,62 @@ import math
 # ---------- PAGE CONFIG ----------
 st.set_page_config(page_title="Scientific Calculator", page_icon="🧮", layout="centered")
 
-# ---------- CUSTOM STYLE ----------
-st.markdown("""
-<style>
-div[data-testid="stAppViewContainer"] {
-    background-color: #0f0f0f;
-}
-h1, p {
-    color: #fff;
-    text-align: center;
-}
-.calculator {
-    background-color: #1a1a1a;
-    border-radius: 20px;
-    padding: 25px;
-    width: 350px;
-    margin: auto;
-    box-shadow: 0px 0px 20px rgba(0,255,255,0.4);
-}
-.display {
-    background-color: #000;
-    color: #00ffcc;
-    font-size: 26px;
-    text-align: right;
-    border-radius: 10px;
-    padding: 10px 15px;
-    border: 2px solid #00ffcc;
-    height: 50px;
-    overflow-x: auto;
-}
-.result-display {
-    background-color: #111;
-    color: #00ffcc;
-    font-size: 22px;
-    text-align: right;
-    border-radius: 10px;
-    padding: 8px 15px;
-    border: 1px solid #00ffcc;
-    margin-bottom: 15px;
-    height: 40px;
-}
-button {
-    font-weight: bold !important;
-}
-footer, .stDeployButton {visibility: hidden;}
-</style>
-""", unsafe_allow_html=True)
-
-st.title("🧮 Casio-Style Scientific Calculator")
-
-# ---------- STATE ----------
+# ---------- INITIAL STATE ----------
 if "expr" not in st.session_state:
     st.session_state.expr = ""
 if "result" not in st.session_state:
     st.session_state.result = ""
+
+# ---------- STYLE (loaded once) ----------
+if "css_loaded" not in st.session_state:
+    st.markdown("""
+    <style>
+    div[data-testid="stAppViewContainer"] {
+        background-color: #0f0f0f;
+    }
+    h1, p {
+        color: #fff;
+        text-align: center;
+    }
+    .calculator {
+        background-color: #1a1a1a;
+        border-radius: 15px;
+        padding: 20px;
+        width: 340px;
+        margin: auto;
+        box-shadow: 0px 0px 15px rgba(0,255,255,0.4);
+    }
+    .display {
+        background-color: #000;
+        color: #00ffcc;
+        font-size: 24px;
+        text-align: right;
+        border-radius: 10px;
+        padding: 10px 15px;
+        border: 2px solid #00ffcc;
+        height: 45px;
+        overflow-x: auto;
+    }
+    .result-display {
+        background-color: #111;
+        color: #00ffcc;
+        font-size: 20px;
+        text-align: right;
+        border-radius: 10px;
+        padding: 6px 15px;
+        border: 1px solid #00ffcc;
+        margin-bottom: 12px;
+        height: 35px;
+    }
+    button {
+        font-weight: bold !important;
+    }
+    footer, .stDeployButton {visibility: hidden;}
+    </style>
+    """, unsafe_allow_html=True)
+    st.session_state.css_loaded = True
+
+st.title("🧮 Casio-Style Scientific Calculator")
 
 # ---------- SAFE EVALUATION ----------
 def safe_eval(expr):
@@ -73,11 +75,9 @@ def safe_eval(expr):
 def press(key):
     if key == "=":
         st.session_state.result = str(safe_eval(st.session_state.expr))
-    elif key == "C":
-        # Backspace: delete last character
+    elif key == "C":  # backspace
         st.session_state.expr = st.session_state.expr[:-1]
     elif key == "AC":
-        # All Clear
         st.session_state.expr = ""
         st.session_state.result = ""
     elif key in ["sin", "cos", "tan", "sqrt", "log", "abs", "round"]:
@@ -89,14 +89,12 @@ def press(key):
     else:
         st.session_state.expr += key
 
-# ---------- UI ----------
+# ---------- DISPLAY ----------
 st.markdown('<div class="calculator">', unsafe_allow_html=True)
-
-# Expression and result display
 st.markdown(f'<div class="display">{st.session_state.expr}</div>', unsafe_allow_html=True)
 st.markdown(f'<div class="result-display">{st.session_state.result}</div>', unsafe_allow_html=True)
 
-# Button Layout
+# ---------- BUTTON GRID ----------
 buttons = [
     ["7", "8", "9", "÷", "sin"],
     ["4", "5", "6", "×", "cos"],
@@ -106,15 +104,15 @@ buttons = [
     ["C", "AC", "^", "%", "round"]
 ]
 
-# Render Buttons
+mapping = {"÷": "/", "×": "*", "−": "-", "√": "sqrt", "π": "pi"}
+
+cols = st.columns(5)
 for row in buttons:
-    cols = st.columns(len(row))
     for i, label in enumerate(row):
-        with cols[i]:
+        with cols[i % 5]:
             if st.button(label, use_container_width=True):
-                # Convert display symbols to Python operators
-                mapping = {"÷": "/", "×": "*", "−": "-", "√": "sqrt", "π": "pi"}
                 press(mapping.get(label, label))
+    cols = st.columns(5)
 
 st.markdown('</div>', unsafe_allow_html=True)
 st.markdown("<br><center><p style='color:#888;'>Casio fx-991EX inspired calculator built with ❤️ using Streamlit</p></center>", unsafe_allow_html=True)
