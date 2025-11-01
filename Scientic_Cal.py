@@ -74,6 +74,10 @@ def press(key):
     if key == "=":
         st.session_state.result = str(safe_eval(st.session_state.expr))
     elif key == "C":
+        # Backspace: delete last character
+        st.session_state.expr = st.session_state.expr[:-1]
+    elif key == "AC":
+        # All Clear
         st.session_state.expr = ""
         st.session_state.result = ""
     elif key in ["sin", "cos", "tan", "sqrt", "log", "abs", "round"]:
@@ -92,14 +96,14 @@ st.markdown('<div class="calculator">', unsafe_allow_html=True)
 st.markdown(f'<div class="display">{st.session_state.expr}</div>', unsafe_allow_html=True)
 st.markdown(f'<div class="result-display">{st.session_state.result}</div>', unsafe_allow_html=True)
 
-# Button Layout 
+# Button Layout
 buttons = [
     ["7", "8", "9", "÷", "sin"],
     ["4", "5", "6", "×", "cos"],
     ["1", "2", "3", "−", "tan"],
     ["0", ".", "(", ")", "+"],
     ["√", "log", "π", "e", "="],
-    ["C", "^", "%", "abs", "round"]
+    ["C", "AC", "^", "%", "round"]
 ]
 
 # Render Buttons
